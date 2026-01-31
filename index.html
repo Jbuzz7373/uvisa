@@ -46,13 +46,34 @@
       .replace(/\s+/g,''); // remove spaces
   }
 
-  async function loadData(){
-    if (rows) return rows;
-    const res = await fetch('./data.json', { cache: 'no-store' });
-    if (!res.ok) throw new Error(`Failed to load data.json (HTTP ${res.status})`);
-    rows = await res.json();
+async function loadData(){
+  if (rows) return rows;
+
+  const res = await fetch('./data.json', { cache: 'no-store' });
+  if (!res.ok) throw new Error(`Failed to load data.json (HTTP ${res.status})`);
+
+  const raw = await res.json();
+
+  // Your current format: { "body": [ ... ] }
+  if (raw && Array.isArray(raw.body)) {
+    rows = raw.body;
     return rows;
   }
+
+  // Also support common alternates just in case later
+  if (Array.isArray(raw)) { rows = raw; return rows; }
+  if (raw && Array.isArray(raw.value)) { rows = raw.value; return rows; }
+  if (raw && Array.isArray(raw.data)) { rows = raw.data; return rows; }
+
+  // As a last resort, if it's an object of records
+  if (raw && typeof raw === 'object') {
+    rows = Object.values(raw);
+    return rows;
+  }
+
+  throw new Error('Unexpected data.json format');
+}
+
 
   async function lookup(){
     try {
