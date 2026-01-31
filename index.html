@@ -127,17 +127,27 @@ async function loadData(){
 
       const mail = rec.MailOutDate ? rec.MailOutDate : 'Not mailed yet';
 
-      out.innerHTML = `
-        <div class="card">
-          <div class="label">Case Number</div>
-          <div class="value">${rec.CaseNumber}</div>
+     const nameAbbrev =
+  rec.NameKey ??
+  rec.NameAbbreviations ??
+  rec["Name Abbreviations"] ??
+  '';
 
-          <div class="label">Decision</div>
-          <div class="value">${rec.Decision || ''}</div>
+out.innerHTML = `
+  <div class="card">
+    <div class="label">Case Number</div>
+    <div class="value">${rec.CaseNumber}</div>
 
-          <div class="label">Mailed Out Date</div>
-          <div class="value">${mail}</div>
-        </div>`;
+    <div class="label">Decision</div>
+    <div class="value">${rec.Decision || ''}</div>
+
+    <div class="label">Mailed Out Date</div>
+    <div class="value">${mail}</div>
+
+    <div class="label">Name Abbreviations</div>
+    <div class="value">${nameAbbrev || '—'}</div>
+  </div>`;
+
     } catch (e) {
       out.innerHTML = `<div class="card error"><b>Error:</b> ${e.message}</div>`;
     }
