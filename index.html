@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>U Visa Case Lookup</title>
+  <style>
+    body{font-family:Arial, sans-serif; max-width:820px; margin:40px auto; padding:0 16px;}
+    h2{margin:0 0 14px;}
+    .row{display:flex; gap:10px; flex-wrap:wrap; margin:12px 0 18px;}
+    input{padding:10px; font-size:16px; width:260px;}
+    button{padding:10px 14px; font-size:16px; cursor:pointer;}
+    .card{border:1px solid #ccc; border-radius:10px; padding:16px; margin-top:14px;}
+    .label{font-size:12px; color:#666; margin-top:10px;}
+    .value{font-size:16px;}
+    .muted{color:#666; font-size:13px; margin-top:10px; line-height:1.4;}
+  </style>
+</head>
+<body>
+  <h2>U Visa Case Status Lookup</h2>
+
+  <div class="row">
+    <input id="caseNo" placeholder="Case Number" />
+    <input id="nameKey" placeholder="Name Key (optional)" />
+    <button onclick="lookup()">Search</button>
+  </div>
+
+  <div class="muted">
+    Enter your Case Number. If provided, Name Key must match to display results.
+  </div>
+
+  <div id="out"></div>
+
+<script>
+let rows = null;
+
+function norm(v){ return (v||'').toString().trim().toUpperCase(); }
+
+async function loadData(){
+  if (rows) return rows;
+  const res = await fetch('data.json', { cache: 'no-store' });
+  rows = await res.json();
+  return rows;
+}
+
+async function lookup(){
+  const c = norm(document.getElementById('caseNo').value);
+  const k = norm(document.getElementById('nameKey').value);
+  const out = document.getElementById('out');
+  out.innerHTML = '';
+
+  if(!c){
+    out.innerHTML = `<div class="card">Enter a Case Number.</div>`;
+    return;
+  }
+
+  const data = await loadData();
+  const rec = data.find(r => norm(r.CaseNumber) === c);
+
+  if(!rec){
+    out.innerHTML = `<div class="card">No record found for that Case Number.</div>`;
+    return;
+  }
+
+  // If they typed a Name Key, enforce match
+  if(k && norm(rec.NameKey) !== k){
+    out.innerHTML = `<div class="card">Record found, but Name Key did not match.</div>`;
+    return;
+  }
+
+  const mail = rec.MailOutDate ? rec.MailOutDate : 'Not mailed yet';
+
+  out.innerHTML = `
+    <div class="card">
+      <div class="label">Case Number</div>
+      <div class="value">${rec.CaseNumber}</div>
+
+      <div class="label">Decision</div>
+      <div class="value">${rec.Decision || ''}</div>
+
+      <div class="label">Mailed Out Date</div>
+      <div class="value">${mail}</div>
+    </div>
+  `;
+}
+</script>
+</body>
+</html>
